@@ -1,5 +1,5 @@
 extern crate queues;
-use queues::*;
+use queues;
 use serialport::available_ports;
 use std::io::{self, Write};
 use std::time::Duration;

@@ -3,6 +3,8 @@ use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
+#[macro_use]
+extern crate log;
 
 pub fn list_serial_ports() -> String {
     let ports = available_ports().unwrap();
@@ -26,9 +28,9 @@ pub fn list_serial_ports() -> String {
 }
 
 fn main() {
-    println!("Hello, world!");
+    env_logger::init();
     let selected_port = list_serial_ports();
-    println!("Selected port: {:?}", selected_port);
+    info!("Selected port: {:?}", selected_port);
     let open_port = serialport::new(selected_port, 115200)
         .timeout(Duration::from_millis(10))
         .open()
@@ -39,7 +41,7 @@ fn main() {
     let read_mutex = Arc::clone(&port_access);
     let read_thread = thread::spawn(move || {
         let mut serial_buf: Vec<u8> = vec![0; 1000];
-        println!("Connection successfully established\n");
+        info!("Connection successfully established\n");
         loop {
             {
                 let mut local_port = read_mutex.lock().unwrap();
@@ -59,13 +61,13 @@ fn main() {
         io::stdin()
             .read_line(&mut std_input)
             .expect("Std input not working\n");
-        println!("Input from user: {}", std_input);
+        info!("Input from user: {}", std_input);
         {
             let mut local_port = write_mutex.lock().unwrap();
-            println!("Mutex lock acquired\n");
+            info!("Mutex lock acquired\n");
             match (*local_port).write(std_input.as_bytes()) {
-                Err(e) => println!("failed due to error {:?}", e),
-                Ok(n) => println!("Bytes written {}", n),
+                Err(e) => error!("failed due to error {:?}", e),
+                Ok(n) => info!("Bytes written {}", n),
             };
         }
     });
